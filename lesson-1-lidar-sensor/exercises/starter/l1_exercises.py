@@ -52,6 +52,7 @@ def vis_intensity_channel(frame, lidar_name):
 # Exercise C1-5-2 : Compute pitch angle resolution
 def print_pitch_resolution(frame, lidar_name):
     # load range image
+    # This part extracts the range image data from the specified LiDAR sensor in the frame and decompresses it.
     lidar = [obj for obj in frame.lasers if obj.name == lidar_name][0]  # get laser data structure from frame
     if len(lidar.ri_return1.range_image_compressed) > 0:  # use first response
         ri = dataset_pb2.MatrixFloat()
@@ -59,6 +60,11 @@ def print_pitch_resolution(frame, lidar_name):
         ri = np.array(ri.data).reshape(ri.shape.dims)
 
     # compute vertical field-of-view from lidar calibration
+    # This section retrieves the LiDAR calibration data and calculates the vertical field-of-view by subtracting the
+    # minimum pitch angle from the maximum pitch angle.
+    # field-of-view is the extent of the observable world that is seen at any given moment.
+    # minimum pitch angle is the lowest angle at which the LiDAR sensor can detect objects.
+    # maximum pitch angle is the highest angle at which the LiDAR sensor can detect objects.
     lidar_calib = [obj for obj in frame.context.laser_calibrations if obj.name == lidar_name][
         0]  # get laser calibration
     min_pitch = lidar_calib.beam_inclination_min
@@ -66,6 +72,8 @@ def print_pitch_resolution(frame, lidar_name):
     vfov = max_pitch - min_pitch
 
     # compute pitch resolution and convert it to angular minutes
+    # the pitch resolution is computed by dividing the VFOV by the number of vertical pixels in the range image.
+    # This resolution is then converted from radians to degrees and printed.
     pitch_res_rad = vfov / ri.shape[0]
     pitch_res_deg = pitch_res_rad * 180 / np.pi
     print("pitch angle resolution = " + '{0:.2f}'.format(pitch_res_deg) + "°")
