@@ -113,7 +113,7 @@ while True:
         l1_examples.print_vfov_lidar(frame, lidar_name)
 
         # Example C1-5-1 : Load range image
-        # l1_examples.print_range_image_shape(frame, lidar_name)
+        l1_examples.print_range_image_shape(frame, lidar_name)
 
         # Exercise C1-5-2 : Compute pitch angle resolution
         # l1_exercises.print_pitch_resolution(frame, lidar_name)
