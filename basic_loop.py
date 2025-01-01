@@ -101,6 +101,7 @@ while True:
         #######
 
         lidar_name = dataset_pb2.LaserName.TOP
+        calib_lidar = [obj for obj in frame.context.laser_calibrations if obj.name == lidar_name][0]
 
         # Exercise C1-3-1 : print no. of vehicles
         l1_exercises.print_no_of_vehicles(frame)
@@ -109,7 +110,7 @@ while True:
         l1_examples.display_image(frame)
 
         # Example C1-3-3 : print angle of vertical field of view
-        # l1_examples.print_vfov_lidar(frame, lidar_name)
+        l1_examples.print_vfov_lidar(frame, lidar_name)
 
         # Example C1-5-1 : Load range image
         # l1_examples.print_range_image_shape(frame, lidar_name)
