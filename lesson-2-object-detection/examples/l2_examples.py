@@ -52,16 +52,16 @@ def render_bb_over_bev(bev_map, labels, configs, vis=False):
     # convert bounding box format format and project into bev
     label_objects = tools.convert_labels_into_objects(labels, configs)
     tools.project_detections_into_bev(bev_map_cpy, label_objects, configs, [0,255,0])
-    
+
     # display bev map
     if vis==True:
-        bev_map_rot = cv2.rotate(bev_map_cpy, cv2.ROTATE_180)   
+        bev_map_rot = cv2.rotate(bev_map_cpy, cv2.ROTATE_180)
         cv2.imshow("BEV map", bev_map_rot)
-        cv2.waitKey(0)          
+        cv2.waitKey(0)
 
-    return bev_map_cpy 
+    return bev_map_cpy
 
-    
+
 
 # Example C2-4-2 : count total no. of vehicles and vehicles that are difficult to track
 def count_vehicles(frame):
@@ -79,6 +79,14 @@ def count_vehicles(frame):
             if label.detection_difficulty_level > 0:
                 count_vehicles.cnt_difficult_vehicles += 1
 
+    # count_vehicles.cnt_vehicles is the total number of vehicles that are labeled in the frame
+    # this means that the vehicle is detected and labeled as a vehicle every time it appears in the frame
+    # the total count of vehicles is incremented by 1 each time a vehicle is detected
+    # thus, the total count of vehicles will be more than the actual number of vehicles in the frame
+
+    # count_vehicles.cnt_difficult_vehicles is the total number of vehicles that are difficult to detect in the frame
+    # this means that the vehicle is detected but is difficult to detect
+    # the total count of difficult vehicles is incremented by 1 each time a difficult vehicle is detected
     print("no. of labelled vehicles = " + str(count_vehicles.cnt_vehicles) + ", no. of vehicles difficult to detect = " + str(count_vehicles.cnt_difficult_vehicles))
 
 

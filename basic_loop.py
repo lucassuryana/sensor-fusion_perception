@@ -58,10 +58,10 @@ import l1_exercises
 # Set parameters and perform initializations
 
 # Select Waymo Open Dataset file and frame numbers
-# data_filename = 'training_segment-1005081002024129653_5313_150_5333_150_with_camera_labels.tfrecord' # Sequence 1
+data_filename = 'training_segment-1005081002024129653_5313_150_5333_150_with_camera_labels.tfrecord' # Sequence 1
 # data_filename = 'training_segment-10072231702153043603_5725_000_5745_000_with_camera_labels.tfrecord' # Sequence 2
-data_filename = 'training_segment-10963653239323173269_1924_000_1944_000_with_camera_labels.tfrecord'  # Sequence 3
-show_only_frames = [0, 200]  # show only frames in interval for debugging
+# data_filename = 'training_segment-10963653239323173269_1924_000_1944_000_with_camera_labels.tfrecord'  # Sequence 3
+show_only_frames = [0, 10]  # show only frames in interval for debugging
 
 # set pause time between frames in ms (0 = stop between frames until key is pressed)
 vis_pause_time = 0
@@ -161,16 +161,18 @@ while True:
         # l2_examples.count_vehicles(frame)
 
         # Example C2-4-3 : Display label bounding boxes on top of BEV map
-        lidar_bev = load_object_from_file(results_fullpath, data_filename, 'lidar_bev', cnt_frame)
-        lidar_bev_labels = l2_examples.render_bb_over_bev(lidar_bev, frame.laser_labels, configs)
+        #lidar_bev = load_object_from_file(results_fullpath, data_filename, 'lidar_bev', cnt_frame)
+        #lidar_bev_labels = l2_examples.render_bb_over_bev(lidar_bev, frame.laser_labels, configs)
 
         # Example C2-4-4 : Display detected objects on top of BEV map
         #detections = load_object_from_file(results_fullpath, data_filename, 'detections_' + configs.model + '_' + str(configs.conf_thresh), cnt_frame)
         #l2_examples.render_obj_over_bev(detections, lidar_bev_labels, configs, True)
 
         # Exercise C2-4-5 : Compute precision and recall (part 1/2 - remove comments only, no action inside functions required)
-        #det_performance = load_object_from_file(results_fullpath, data_filename, 'det_performance_' + configs.model + '_' + str(configs.conf_thresh), cnt_frame)
-        #det_performance_all.append(det_performance)  # store all evaluation results in a list for performance assessme
+        det_performance = load_object_from_file(results_fullpath, data_filename, 'det_performance_' + configs.model + '_' + str(configs.conf_thresh), cnt_frame)
+        det_performance_all.append(det_performance)  # store all evaluation results in a list for performance assessment
+        # I only have 10 frames. To download the complete one I need to download from Udacity's workspace.
+        # However, too many frames to download manually.
 
         #######
         ####### LESSON 2 EXERCISES & EXAMPLES  END #######
@@ -184,6 +186,7 @@ while True:
 
     # Exercise C2-4-5 : Compute precision and recall (part 2/2)
     # l2_exercises.compute_precision_recall(det_performance_all)
+    # the calculated precision and recall values are only for the first 10 frames
 
     # Exercise C2-4-6 : Plotting the precision-recall curve
-    # l2_exercises.plot_precision_recall()
+    l2_exercises.plot_precision_recall()
