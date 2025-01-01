@@ -58,13 +58,13 @@ import l1_exercises
 # Set parameters and perform initializations
 
 # Select Waymo Open Dataset file and frame numbers
-data_filename = 'training_segment-1005081002024129653_5313_150_5333_150_with_camera_labels.tfrecord' # Sequence 1
+# data_filename = 'training_segment-1005081002024129653_5313_150_5333_150_with_camera_labels.tfrecord' # Sequence 1
 # data_filename = 'training_segment-10072231702153043603_5725_000_5745_000_with_camera_labels.tfrecord' # Sequence 2
-# data_filename = 'training_segment-10963653239323173269_1924_000_1944_000_with_camera_labels.tfrecord'  # Sequence 3
-show_only_frames = [0, 10]  # show only frames in interval for debugging
+data_filename = 'training_segment-10963653239323173269_1924_000_1944_000_with_camera_labels.tfrecord'  # Sequence 3
+show_only_frames = [0, 200]  # show only frames in interval for debugging
 
 # set pause time between frames in ms (0 = stop between frames until key is pressed)
-vis_pause_time = 1
+vis_pause_time = 0
 
 # Prepare Waymo Open Dataset file for loading
 data_fullpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'dataset', data_filename)  # adjustable path in case this script is called from another working directory
@@ -104,31 +104,31 @@ while True:
         calib_lidar = [obj for obj in frame.context.laser_calibrations if obj.name == lidar_name][0]
 
         # Exercise C1-3-1 : print no. of vehicles
-        l1_exercises.print_no_of_vehicles(frame)
+        #l1_exercises.print_no_of_vehicles(frame)
 
         # Example C1-3-2 : display camera image
-        l1_examples.display_image(frame)
+        #l1_examples.display_image(frame)
 
         # Example C1-3-3 : print angle of vertical field of view
-        l1_examples.print_vfov_lidar(frame, lidar_name)
+        #l1_examples.print_vfov_lidar(frame, lidar_name)
 
         # Example C1-5-1 : Load range image
-        l1_examples.print_range_image_shape(frame, lidar_name)
+        #l1_examples.print_range_image_shape(frame, lidar_name)
 
         # Exercise C1-5-2 : Compute pitch angle resolution
-        l1_exercises.print_pitch_resolution(frame, lidar_name)
+        #l1_exercises.print_pitch_resolution(frame, lidar_name)
 
         # Example C1-5-3 : Retrieve maximum and minimum distance
-        l1_examples.get_max_min_range(frame, lidar_name)
+        #l1_examples.get_max_min_range(frame, lidar_name)
 
         # Example C1-5-4 : Visualize range channel
-        l1_examples.vis_range_channel(frame, lidar_name)
+        #l1_examples.vis_range_channel(frame, lidar_name)
 
         # Exercise C1-5-5 : Visualize intensity channel
-        l1_exercises.vis_intensity_channel(frame, lidar_name)
+        #l1_exercises.vis_intensity_channel(frame, lidar_name)
 
         # Example C1-5-6 : Convert range image to 3D point-cloud
-        # l1_examples.range_image_to_point_cloud(frame, lidar_name)
+        #l1_examples.range_image_to_point_cloud(frame, lidar_name)
 
         #######
         ####### LESSON 1 EXERCISES & EXAMPLES  END #######
@@ -148,8 +148,8 @@ while True:
         configs.model = 'darknet'
 
         # Example C2-3-1 : Crop point cloud
-        # lidar_pcl = l1_examples.range_image_to_point_cloud(frame, lidar_name, True)
-        # cropped_pcl = l2_examples.crop_pcl(lidar_pcl, configs, False)
+        lidar_pcl = l1_examples.range_image_to_point_cloud(frame, lidar_name, False)
+        cropped_pcl = l2_examples.crop_pcl(lidar_pcl, configs, False)
 
         # Exercise C2-3-2 : Transform metric point coordinates to BEV space
         # l2_exercises.pcl_to_bev(cropped_pcl, configs)
@@ -161,8 +161,8 @@ while True:
         # l2_examples.count_vehicles(frame)
 
         # Example C2-4-3 : Display label bounding boxes on top of BEV map
-        #lidar_bev = load_object_from_file(results_fullpath, data_filename, 'lidar_bev', cnt_frame)
-        #lidar_bev_labels = l2_examples.render_bb_over_bev(lidar_bev, frame.laser_labels, configs)
+        lidar_bev = load_object_from_file(results_fullpath, data_filename, 'lidar_bev', cnt_frame)
+        lidar_bev_labels = l2_examples.render_bb_over_bev(lidar_bev, frame.laser_labels, configs)
 
         # Example C2-4-4 : Display detected objects on top of BEV map
         #detections = load_object_from_file(results_fullpath, data_filename, 'detections_' + configs.model + '_' + str(configs.conf_thresh), cnt_frame)
