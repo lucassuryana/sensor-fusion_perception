@@ -51,6 +51,9 @@ def range_image_to_point_cloud(frame, lidar_name, vis=True):
     calibration = [obj for obj in frame.context.laser_calibrations if obj.name == lidar_name][0]
 
     # compute vertical beam inclinations
+    # vertical beam inclinations are the angles at which the laser beams are emitted in the vertical direction
+    # vertical direction means the direction perpendicular to the ground
+    # the beam is emitted in the horizontal
     height = ri_range.shape[0]
     inclination_min = calibration.beam_inclination_min
     inclination_max = calibration.beam_inclination_max
@@ -58,6 +61,7 @@ def range_image_to_point_cloud(frame, lidar_name, vis=True):
     inclinations = np.flip(inclinations)
 
     # compute azimuth angle and correct it so that the range image center is aligned to the x-axis
+    # azimuth angle is the angle at which the laser beams are emitted in the horizontal direction
     width = ri_range.shape[1]
     extrinsic = np.array(calibration.extrinsic.transform).reshape(4,4)
     az_correction = math.atan2(extrinsic[1,0], extrinsic[0,0])
@@ -80,7 +84,7 @@ def range_image_to_point_cloud(frame, lidar_name, vis=True):
     # extract points with range > 0
     idx_range = ri_range > 0
     pcl = xyz_vehicle[idx_range,:3]
- 
+
     # visualize point-cloud
     if vis:
         pcd = o3d.geometry.PointCloud()
@@ -88,9 +92,9 @@ def range_image_to_point_cloud(frame, lidar_name, vis=True):
         o3d.visualization.draw_geometries([pcd])
 
     # stack lidar point intensity as last column
-    pcl_full = np.column_stack((pcl, ri[idx_range, 1]))    
+    pcl_full = np.column_stack((pcl, ri[idx_range, 1]))
 
-    return pcl_full    
+    return pcl_full
 
 
 # Example C1-5-4 : Visualize range channel
