@@ -119,13 +119,13 @@ while True:
         l1_exercises.print_pitch_resolution(frame, lidar_name)
 
         # Example C1-5-3 : Retrieve maximum and minimum distance
-        # l1_examples.get_max_min_range(frame, lidar_name)
+        l1_examples.get_max_min_range(frame, lidar_name)
 
         # Example C1-5-4 : Visualize range channel
-        # l1_examples.vis_range_channel(frame, lidar_name)
+        l1_examples.vis_range_channel(frame, lidar_name)
 
         # Exercise C1-5-5 : Visualize intensity channel
-        # l1_exercises.vis_intensity_channel(frame, lidar_name)
+        l1_exercises.vis_intensity_channel(frame, lidar_name)
 
         # Example C1-5-6 : Convert range image to 3D point-cloud
         # l1_examples.range_image_to_point_cloud(frame, lidar_name)

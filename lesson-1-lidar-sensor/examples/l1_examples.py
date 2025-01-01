@@ -97,6 +97,7 @@ def range_image_to_point_cloud(frame, lidar_name, vis=True):
 def vis_range_channel(frame, lidar_name):
 
     # extract range image from frame
+    # range image
     ri = load_range_image(frame, lidar_name)
     ri[ri<0]=0.0
 
@@ -119,6 +120,10 @@ def vis_range_channel(frame, lidar_name):
 
 # Example C1-5-3 : Retrieve maximum and minimum distance
 def get_max_min_range(frame, lidar_name):
+    # Maximum and minimum distance means the maximum and minimum range values in the range image.
+    # The range image is a 2D image where each pixel represents the distance of the corresponding point in the 3D space.
+    # If the min range is 0, it means that the corresponding point is not detected by the LiDAR sensor.
+    # If the max range is 79.99, it means that the corresponding point is detected at a distance of 79.99 meters.
 
     # extract range image from frame
     ri = load_range_image(frame, lidar_name)
