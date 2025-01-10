@@ -20,16 +20,34 @@ class Camera:
         self.sens_to_veh[0:3, 0:3] = M_rot
         self.sens_to_veh[0:3, 3] = t
         self.veh_to_sens = np.linalg.inv(self.sens_to_veh) # transformation vehicle to sensor coordinates
-    
-    def in_fov(self, x):
-        # check if an object x can be seen by this sensor
 
+    # in_fov is field of view, to indicate whether the object is detected or not
+    def in_fov(self, x):
         ############
         # TODO: Return True if x lies in sensor's field of view, otherwise return False. 
         # Don't forget to transform from vehicle to sensor coordinates.
+        # check if an object x can be seen by this sensor
+        # pos_veh is the position of the object in vehicle coordinates
+        pos_veh = np.ones((4, 1))
+        # homogeneous coordinates
+        # x is the state vector of the object
+        # x[0:3] is the position of the object in world coordinates
+        # x[0:3] = [x, y, z]
+        pos_veh[0:3] = x[0:3]
+        # pos_sens is the position of the object in sensor coordinates
+        # the multiplication pos_veh to
+        pos_sens = self.veh_to_sens * pos_veh
+        visible = False
+        # make sure to not divide by zero - we can exclude the whole negative x-range here
+        if pos_sens[0] > 0:
+            alpha = np.arctan(pos_sens[1] / pos_sens[0])
+            # no normalization needed because returned alpha always lies between [-pi/2, pi/2]
+            if alpha > self.fov[0] and alpha < self.fov[1]:
+                visible = True
+
         ############
             
-        return False
+        return visible
         
 #################
 def run():

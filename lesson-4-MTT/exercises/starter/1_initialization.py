@@ -15,6 +15,66 @@ class Track:
 
         ############
         # TODO: initialize self.x and self.P from measurement z and R, don't forget coordinate transforms
+        # get measurement in homogeneous coordinates
+        # create a 4x1 vector with 1 in the last entry: [z[0], z[1], z[2], 1]
+        # in the documentation, it is written as [z1, z2, z3, 1]
+        z = np.ones((4, 1))
+        z[0:3] = meas.z[0:3]
+        # transform measurement to vehicle coordinates
+        # sens_to_veh is the coordinate transformation matrix from sensor to vehicle coordinates
+        # senst_to_veh = [r11, r12, r12, | t1]
+        #                [r21, r22, r23, | t2]
+        #                [r31, r32, r33, | t3]
+        #                 -----------------
+        #                [  0,   0,   0, |  1]
+        # z_veh is the transformed measurement in vehicle coordinates
+        # z_veh is a 4x1 vector: [z_veh[0], z_veh[1], z_veh[2], 1]
+        # in the document, it is written as: [px, py, pz, 1]
+        z_veh = meas.sens_to_veh * z
+
+        # save initial state from measurement
+        # self.x is the state vector
+        # self.x is a 6x1 vector: [z_veh[0], z_veh[1], z_veh[2], 0, 0, 0]
+        # in the document, it is written as: [px, py, pz, vx, vy, vz]
+        self.x = np.zeros((6,1))
+        self.x[0:3] = z_veh[0:3]
+
+        # set up position estimation error covariance P_pos
+        # M_rot is the rotation matrix from sensor to vehicle coordinates
+        # M_rot is a 3x3 matrix: [[r11, r12, r13]
+        #                         [r21, r22, r23]
+        #                         [r31, r32, r33]]
+        M_rot = meas.sens_to_veh[0:3, 0:3]
+        # meas.R is the measurement noise covariance matrix
+        # P_pos is the position estimation error covariance
+        # P_pos is a 3x3 matrix: [[sigma_lidar_x^2, 0, 0]
+        #                         [0, sigma_lidar_y^2, 0]
+        #                         [0, 0, sigma_lidar_z^2]]
+        sigma_lidar_x = 0.01
+        sigma_lidar_y = 0.01
+        sigma_lidar_z = 0.001
+        P_pos = M_rot * meas.R * np.transpose(M_rot)
+
+        # set up velocity estimation error covariance P_vel
+        # P_vel is the velocity estimation error covariance
+        # P_vel is a 3x3 matrix: [[sigma_p44^2, 0, 0]
+        #                         [0, sigma_p55^2, 0]
+        #                         [0, 0, sigma_p66^2]]
+        sigma_p44 = 50
+        sigma_p55 = 50
+        sigma_p66 = 5
+        P_vel = np.matrix([[sigma_p44**2, 0, 0],
+                        [0, sigma_p55**2, 0],
+                        [0, 0, sigma_p66**2]])
+
+        # overall covariance initialization
+        # self.P is the estimation error covariance
+        # self.P is a 6x6 matrix: [[P_pos, 0]
+        #                          [0, P_vel]]
+        self.P = np.zeros((6, 6))
+        self.P[0:3, 0:3] = P_pos
+        self.P[3:6, 3:6] = P_vel
+
         ############
         
         
@@ -28,7 +88,7 @@ class Measurement:
                     [np.sin(phi), np.cos(phi), 0],
                     [0, 0, 1]])
         
-        # coordiante transformation matrix from sensor to vehicle coordinates
+        # coordinate transformation matrix from sensor to vehicle coordinates
         self.sens_to_veh = np.matrix(np.identity(4))            
         self.sens_to_veh[0:3, 0:3] = M_rot
         self.sens_to_veh[0:3, 3] = t
@@ -43,6 +103,7 @@ class Measurement:
         sigma_lidar_x = 0.01 # standard deviation for noisy measurement generation
         sigma_lidar_y = 0.01
         sigma_lidar_z = 0.001
+        # self.z is lidar measurement
         self.z = np.zeros((3,1)) # measurement vector
         self.z[0] = float(gt_sens[0,0]) + np.random.normal(0, sigma_lidar_x)
         self.z[1] = float(gt_sens[1,0]) + np.random.normal(0, sigma_lidar_y)
