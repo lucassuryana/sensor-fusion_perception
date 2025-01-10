@@ -23,14 +23,19 @@ class Filter:
         # predict state and estimation error covariance to next timestep
 
         ############
-        # TODO: implement prediction step
+        x = np.dot(self.F(), x)
+        P = np.dot(np.dot(self.F(), P), self.F().T) + self.Q()
         ############
         
         return x, P
 
     def update(self, x, P, z, R):
         # update state and covariance with associated measurement
-
+        gamma = z - np.dot(self.H(), x) # residual
+        S = np.dot(np.dot(self.H(), P), self.H().T) + R
+        K = np.dot(np.dot(P, self.H().T), np.linalg.inv(S))
+        x = x + np.dot(K, gamma)
+        P = (np.eye(self.dim_state) - np.dot(K, self.H())) * P
         ############
         # TODO: implement update step
         ############

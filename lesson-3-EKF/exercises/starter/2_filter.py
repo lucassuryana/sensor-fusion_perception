@@ -1,127 +1,127 @@
+# imports
 import numpy as np
 import matplotlib
-matplotlib.use('wxagg') # change backend so that figure maximizing works on Mac as well  
+# matplotlib.use('wxagg') # change backend so that figure maximizing works on Mac as well
 import matplotlib.pyplot as plt
 
-class Filter:
-    '''Kalman filter class'''
+
+class Camera:
+    '''Camera sensor class including measurement matrix'''
+
     def __init__(self):
-        self.dim_state = 4 # process model dimension
-        self.dt = 0.1 # time increment
-        self.q=0.1 # process noise variable for Kalman filter Q
+        self.f_i = 2095.5  # focal length i-coordinate
+        self.f_j = 2095.5  # focal length j-coordinate
+        self.c_i = 944.9  # principal point i-coordinate
+        self.c_j = 640.2  # principal point j-coordinate
 
-    def F(self):
-        # system matrix
+    def get_hx(self, x):
+        # calculate nonlinear measurement expectation value h(x)
+        hx = np.zeros((2, 1))
+
+        # Extract state variables
+        X = x[0, 0]
+        Y = x[1, 0]
+        Z = x[2, 0]
+
+        # Calculate h(x)
+        if X == 0:
+            raise NameError('Jacobian not defined for x[0]=0!')
+        hx[0, 0] = self.c_i - self.f_i * Y / X
+        hx[1, 0] = self.c_j - self.f_j * Z / X
 
         ############
-        # TODO: implement and return F
+        # TODO: implement and return h(x)
         ############
-        
-        pass
 
-    def Q(self):
-        # process noise covariance Q
+        return hx
 
-        ############
-        # TODO: implement and return Q
-        ############
-        
-        pass
-    
-    def H(self):
-        # measurement matrix H
+    def get_H(self, x):
+        # calculate Jacobian H at current x from h(x)
+        H = np.matrix(np.zeros((2, 6)))
 
+        # Extract state variables
+        X = x[0, 0]
+        Y = x[1, 0]
+        Z = x[2, 0]
+
+        # Calculate H
+        if X == 0:
+            raise NameError('Jacobian not defined for x[0]=0!')
+        H[0, 0] = self.f_i * Y / (X ** 2)
+        H[1, 0] = self.f_j * Z / (X ** 2)
+        H[0, 1] = -self.f_i / X
+        H[1, 2] = -self.f_j / X
         ############
         # TODO: implement and return H
         ############
-    
-        pass
-    
-    def predict(self, x, P):
-        # predict state and estimation error covariance to next timestep
-        F = self.F()
-        x = F*x # state prediction
-        P = F*P*F.transpose() + self.Q() # covariance prediction
-        return x, P
 
-    def update(self, x, P, z, R):
-        # update state and covariance with associated measurement
-        H = self.H() # measurement matrix
-        gamma = z - H*x # residual
-        S = H*P*H.transpose() + R # covariance of residual
-        K = P*H.transpose()*np.linalg.inv(S) # Kalman gain
-        x = x + K*gamma # state update
-        I = np.identity(self.dim_state)
-        P = (I - K*H) * P # covariance update
-        return x, P   
-        
-        
-def run_filter():
-    ''' loop over data and call predict and update'''
-    np.random.seed(0) # make random values predictable
-    
-    # init filter
-    KF = Filter()
-    
-    # init figure
-    fig, ax = plt.subplots()
-    
-    # init track state and covariance
-    x = np.matrix([[0],
-                [0],
-                [0],
-                [0]])
-    P = np.matrix([[0.1**2, 0, 0, 0],
-                [0, 0.1**2, 0, 0],
-                [0, 0, 2**2, 0],
-                [0, 0, 0, 2**2]])
-    
-    # loop over measurements and call predict and update
-    for i in range(1,101):        
-        
-        # prediction
-        x, P = KF.predict(x, P) # predict to next timestep
-        
-        # ground truth generation
-        gt = np.matrix([[i*KF.dt], 
-                       [0.1*(i*KF.dt)**2]])
-        
-        # measurement generation
-        sigma_z = 0.2 # measurement noise 
-        z = np.matrix([[float(gt[0]) + np.random.normal(0, sigma_z)],
-                       [float(gt[1]) + np.random.normal(0, sigma_z)]]) # generate noisy measurement
-        R = np.matrix([[sigma_z**2, 0], # measurement noise covariance matrix
-                            [0, sigma_z**2]])
-        
-        # update
-        x, P = KF.update(x, P, z, R) # update with measurement
-        
-        # visualization    
-        ax.scatter(float(x[0]), float(x[1]), color='green', s=40, marker='x', label='track')
-        ax.scatter(float(z[0]), float(z[1]), color='blue', marker='.', label='measurement')
-        ax.scatter(float(gt[0]), float(gt[1]), color='gray', s=40, marker='+', label='ground truth')
-        ax.set_xlabel('x [m]')
-        ax.set_ylabel('y [m]')
-        ax.set_xlim(0,10)
-        ax.set_ylim(0,10)
-           
-        # maximize window        
-        mng = plt.get_current_fig_manager()
-        mng.frame.Maximize(True) 
-        
-        # remove repeated labels
-        handles, labels = ax.get_legend_handles_labels()
-        handle_list, label_list = [], []
-        for handle, label in zip(handles, labels):
-            if label not in label_list:
-                handle_list.append(handle)
-                label_list.append(label)
-        ax.legend(handle_list, label_list, loc='center left', shadow=True, fontsize='x-large', bbox_to_anchor=(0.8, 0.5))
+        return H
 
-        plt.pause(0.01)
+
+def calc_Jacobian(x):
+    # calculate Jacobian for x
+    cam = Camera()
+    H = cam.get_H(x)
+
+    # init visualization
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    plot_x = []
+    plot_y1 = []
+    plot_y2 = []
+    lin_y1 = []
+    lin_y2 = []
+
+    # calculate Taylor series expansion point
+    hx_orig = cam.get_hx(x)
+    ax1.plot(x[0], hx_orig[0], marker='x', color='green', label='expansion point x')
+    ax2.plot(x[0], hx_orig[1], marker='x', color='green', label='expansion point x')
+
+    # calculate linear approximation at this point
+    s1 = float(H[0, 0])  # slope of tangent given by Jacobian H
+    s2 = float(H[1, 0])
+    i1 = float(hx_orig[0] - s1 * x[0])  # intercept i = y - s*x
+    i2 = float(hx_orig[1] - s2 * x[0])
+
+    # calculate nonlinear measurement function h
+    for px in range(1, 50):
+        x[0] = px
+        hx = cam.get_hx(x)
+        plot_x.append(px)
+        plot_y1.append(hx[0])
+        plot_y2.append(hx[1])
+        lin_y1.append(s1 * px + i1)
+        lin_y2.append(s2 * px + i2)
+
+    # plot results
+    ax1.plot(plot_x, plot_y1, color='blue', label='measurement function h')
+    ax1.plot(plot_x, lin_y1, color='red', label='linear approximation H')
+    ax2.plot(plot_x, plot_y2, color='blue', label='measurement function h')
+    ax2.plot(plot_x, lin_y2, color='red', label='linear approximation H')
+
+    # maximize window
+    # the lines of code create an error
+    # mng = plt.get_current_fig_manager()
+    # mng.frame.Maximize(True)
+
+    # legend
+    ax1.legend(loc='center left', shadow=True, fontsize='large', bbox_to_anchor=(0.5, 0.1))
+    ax1.set_xlabel('x [m]')
+    ax1.set_ylabel('h(x) first component [px]')
+    ax2.legend(loc='center left', shadow=True, fontsize='large', bbox_to_anchor=(0.5, 0.1))
+    ax2.set_xlabel('x [m]')
+    ax2.set_ylabel('h(x) second component [px]')
+
     plt.show()
-        
 
-####################
-# call main loop
-run_filter()
+
+#################
+# define expansion point for Taylor series
+x = np.matrix([[10],
+               [1],
+               [-1],
+               [0],
+               [0],
+               [0]])
+
+calc_Jacobian(x)
+

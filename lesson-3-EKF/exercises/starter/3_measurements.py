@@ -11,10 +11,21 @@ class Camera:
         self.f_j = 2095.5 # focal length j-coordinate
         self.c_i = 944.9 # principal point i-coordinate
         self.c_j = 640.2 # principal point j-coordinate 
-        
-    def get_hx(self, x):    
+
+    def get_hx(self, x):
         # calculate nonlinear measurement expectation value h(x)   
         hx = np.zeros((2,1))
+
+        # Extract state variables
+        X = x[0,0]
+        Y = x[1,0]
+        Z = x[2,0]
+
+        # Calculate h(x)
+        if X == 0:
+            raise NameError('Jacobian not defined for x[0]=0!')
+        hx[0,0] = self.c_i - self.f_i * Y / X
+        hx[1,0] = self.c_j - self.f_j * Z / X
 
         ############
         # TODO: implement and return h(x)
@@ -26,6 +37,18 @@ class Camera:
         # calculate Jacobian H at current x from h(x)
         H = np.matrix(np.zeros((2, 6)))
 
+        # Extract state variables
+        X = x[0,0]
+        Y = x[1,0]
+        Z = x[2,0]
+
+        # Calculate H
+        if X == 0:
+            raise NameError('Jacobian not defined for x[0]=0!')
+        H[0,0] = self.f_i * Y / (X**2)
+        H[1,0] = self.f_j * Z / (X**2)
+        H[0,1] = -self.f_i / X
+        H[1,2] = -self.f_j / X
         ############
         # TODO: implement and return H
         ############ 
