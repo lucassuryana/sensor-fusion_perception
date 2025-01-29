@@ -59,10 +59,7 @@ class Association:
                     meas = meas_list[j]
                     dist = self.MHD(track, meas, KF)
                     if self.gating(dist, sensor=meas.sensor):
-                        # if True: ############# HERE!!!!!!!
                         self.association_matrix[i, j] = dist
-                        # if i in self.unassigned_tracks: self.unassigned_tracks.remove(i)
-                        # if j in self.unassigned_meas: self.unassigned_meas.remove(j)
 
         ############
         # END student code
@@ -76,10 +73,6 @@ class Association:
         # - remove corresponding track and measurement from unassigned_tracks and unassigned_meas
         # - return this track and measurement
         ############
-
-        # the following only works for at most one track and one measurement
-        update_track = 0
-        update_meas = 0
 
         # remove from list
         A = self.association_matrix
@@ -124,7 +117,7 @@ class Association:
         ############
         # TODO Step 3: return True if measurement lies inside gate, otherwise False
         ############
-        p = params.gating_threshold  # 0.999 #params.gating_threshold #0.999 #0.95
+        p = params.gating_threshold
         limit = chi2.ppf(params.gating_threshold, df=sensor.dim_meas)
         return MHD < limit
 
@@ -139,7 +132,6 @@ class Association:
 
         x = track.x
         H = meas.sensor.get_H(x)
-        # gamma = meas.z - H * x
         gamma = meas.z - meas.sensor.get_hx(x)
         S = H * track.P * H.transpose() + meas.R
         return gamma.transpose() * np.linalg.inv(S) * gamma
