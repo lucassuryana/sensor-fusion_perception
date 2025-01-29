@@ -92,7 +92,6 @@ class Sensor:
             else:
                 hx[0, 0] = self.c_i - self.f_i * pos_sens[1] / pos_sens[0]  # project to image coordinates
                 hx[1, 0] = self.c_j - self.f_j * pos_sens[2] / pos_sens[0]
-                # print(f'CAMERA hx:\n{hx}')
                 return hx
 
                 ############
@@ -178,19 +177,16 @@ class Measurement:
             # TODO Step 4: initialize camera measurement including z and R
             ############
 
-            sigma_cam_i = params.sigma_cam_i
-            sigma_cam_j = params.sigma_cam_j
+            sigma_cam_i = params.sigma_cam_i # load params
+            sigma_cam_j = params.sigma_cam_j # load params
             self.z = np.zeros((sensor.dim_meas, 1))  # measurement vector
-            self.z[0] = z[0]
-            self.z[1] = z[1]
+            self.z[0] = z[0] # measurement vector
+            self.z[1] = z[1] # measurement vector
             self.sensor = sensor  # sensor that generated this measurement
             self.R = np.matrix([[sigma_cam_i ** 2, 0],  # measurement noise covariance matrix
                                 [0, sigma_cam_j ** 2]])
-            # From loop_over_dataset.py
-            # z = [box.center_x, box.center_y, box.width, box.length]
-            # meas_list_cam = camera.generate_measurement(cnt_frame, z, meas_list_cam)
-            self.width = z[2]
-            self.length = z[3]
+            self.width = z[2] # measurement vector
+            self.length = z[3] # measurement vector
 
             ############
             # END student code
