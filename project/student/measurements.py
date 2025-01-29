@@ -54,14 +54,16 @@ class Sensor:
         ############
         # return True
 
-        vehicle_position = np.ones((4, 1))  # homogeneous coordinates
-        vehicle_position[0:3] = x[0:3]
-        sensor_position = self.veh_to_sens @ vehicle_position  # convert from vehicle to sensor coordinates
+        pos_veh = np.ones((4, 1))  # homogeneous coordinates
+        pos_veh[0:3] = x[0:3]
+        pos_sens = self.veh_to_sens * pos_veh  # transform from vehicle to sensor coordinates
 
-        # calculate the angle for the position of x
-        angle = math.atan2(sensor_position[1], sensor_position[0])
+        if pos_sens[0] > 0:  # check if in front of the camera
+            alpha = math.atan2(pos_sens[1], pos_sens[0])  # calculate angle
+            if self.fov[0] <= alpha <= self.fov[1]:
+                return True
+        return False
 
-        return self.fov[0] <= angle <= self.fov[1]
         ############
         # END student code
         ############
@@ -86,15 +88,18 @@ class Sensor:
             pos_veh = np.ones((4, 1))  # homogeneous coordinates
             pos_veh[0:3] = x[0:3]
             pos_sens = self.veh_to_sens * pos_veh  # transform from vehicle to camera coordinates
+
+            # - project from camera to image coordinates
             hx = np.zeros((2, 1))
             if pos_sens[0] == 0:
                 raise NameError('Jacobian not defined for x=0!')
             else:
                 hx[0, 0] = self.c_i - self.f_i * pos_sens[1] / pos_sens[0]  # project to image coordinates
                 hx[1, 0] = self.c_j - self.f_j * pos_sens[2] / pos_sens[0]
-                return hx
 
-                ############
+            # - return h(x)
+            return hx
+
             # END student code
             ############
 
