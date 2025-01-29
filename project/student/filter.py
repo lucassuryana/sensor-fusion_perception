@@ -9,118 +9,84 @@
 # https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013
 # ----------------------------------------------------------------------
 #
-
 # imports
 import numpy as np
-
 # add project directory to python path to enable relative imports
 import os
 import sys
-
-PACKAGE_PARENT = '..'
+PACKAGE_PARENT = ".."
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 import misc.params as params
-
-
 class Filter:
-    '''Kalman filter class'''
-
+    """Kalman filter class"""
     def __init__(self):
-        pass
-
+        self.dim_state = params.dim_state  # process model dimension
+        self.dt = params.dt  # sample time
+        self.q = params.q  # process noise value for Q covariance
     def F(self):
         ############
         # Step 1: implement and return system matrix F
         ############
-        dt = params.dt
-        F = np.eye(params.dim_state)  # Identity matrix for state transition
-        F[0, 3] = dt  # Update position x with velocity x
-        F[1, 4] = dt  # Update position y with velocity y
-        F[2, 5] = dt  # Update position z with velocity z
+        F = np.eye((self.dim_state))
+        F = np.asmatrix(F)  # convert from array to matrix instance
+        F[0, 3] = self.dt
+        F[1, 4] = self.dt
+        F[2, 5] = self.dt
         return F
-
-        ############
-        # END student code
-        ############
-
     def Q(self):
         ############
         # Step 1: implement and return process noise covariance Q
         ############
-        dt = params.dt
-        q = params.q
-        Q = np.zeros((params.dim_state, params.dim_state))
-        Q[0, 0] = (dt ** 3) / 3 * q  # Variance for position x
-        Q[1, 1] = (dt ** 3) / 3 * q  # Variance for position y
-        Q[2, 2] = (dt ** 3) / 3 * q  # Variance for position z
-        Q[0, 3] = (dt ** 2) / 2 * q  # Covariance between position x and velocity x
-        Q[1, 4] = (dt ** 2) / 2 * q  # Covariance between position y and velocity y
-        Q[2, 5] = (dt ** 2) / 2 * q  # Covariance between position z and velocity z
-        Q[3, 0] = (dt ** 2) / 2 * q
-        Q[4, 1] = (dt ** 2) / 2 * q
-        Q[5, 2] = (dt ** 2) / 2 * q
-        Q[3, 3] = dt * q  # Variance for velocity x
-        Q[4, 4] = dt * q  # Variance for velocity y
-        Q[5, 5] = dt * q  # Variance for velocity z
-        return Q
-
-        ############
-        # END student code
-        ############
-
+        dt2 = self.dt ** 2
+        dt3 = self.dt ** 3
+        q_11 = dt3 * self.q / 3.0
+        q_13 = dt2 * self.q / 2.0
+        q_33 = self.dt * self.q
+        return np.matrix(
+            [
+                [q_11, 0.0, 0.0, q_13, 0.0, 0.0],
+                [0.0, q_11, 0.0, 0.0, q_13, 0.0],
+                [0.0, 0.0, q_11, 0.0, 0.0, q_13],
+                [q_13, 0.0, 0.0, q_33, 0.0, 0.0],
+                [0.0, q_13, 0.0, 0.0, q_33, 0.0],
+                [0.0, 0.0, q_13, 0.0, 0.0, q_33],
+            ]
+        )
     def predict(self, track):
         ############
         # Step 1: predict state x and estimation error covariance P to next timestep, save x and P in track
         ############
-        F = self.F()
-        Q = self.Q()
-        x_pred = F @ track.x  # Predict state
-        P_pred = F @ track.P @ F.T + Q  # Predict covariance
-        track.set_x(x_pred)
-        track.set_P(P_pred)
-
-        ############
-        # END student code
-        ############
-
+        x_ = self.F() * track.x
+        P_ = self.F() * track.P * self.F().T + self.Q()
+        track.set_x(x_)
+        track.set_P(P_)
     def update(self, track, meas):
         ############
         # Step 1: update state x and covariance P with associated measurement, save x and P in track
         ############
-        H = meas.sensor.get_H(track.x)  # Measurement matrix
-        gamma = self.gamma(track, meas)  # Residual
-        S = self.S(track, meas, H)  # Covariance of residual
-        K = track.P @ H.T @ np.linalg.inv(S)  # Kalman gain
-        x_updated = track.x + K @ gamma  # Update state
-        P_updated = (np.eye(params.dim_state) - K @ H) @ track.P  # Update covariance
-        track.set_x(x_updated)
-        track.set_P(P_updated)
-
-        ############
-        # END student code
-        ############
+        H = meas.sensor.get_H(track.x)  # measurement jacobina matrix
+        gamma = self.gamma(track, meas)  # residual vector
+        S = self.S(track, meas, H)  # residual covariance
+        I = np.asmatrix(np.eye((self.dim_state)))  # identity matrix
+        K = track.P * H.T * S.I  # Kalman gain
+        x = track.x + K * gamma  # state update
+        P = (I - K * H) * track.P  # covariance update
+        track.set_x(x)  # track state assignment
+        track.set_P(P)  # track covariance assignment
         track.update_attributes(meas)
-
     def gamma(self, track, meas):
         ############
         # Step 1: calculate and return residual gamma
         ############
-        H = meas.sensor.get_H(track.x)  # Measurement matrix
-        gamma = meas.z - H @ track.x  # Residual
+        # try:
+        H = meas.sensor.get_hx(track.x)
+        # except:
+        #     H = 0
+        gamma = meas.z - H
         return gamma
-
-        ############
-        # END student code
-        ############
-
     def S(self, track, meas, H):
         ############
         # Step 1: calculate and return covariance of residual S
         ############
-        S = H @ track.P @ H.T + meas.R  # Covariance of residual
-        return S
-
-        ############
-        # END student code
-        ############ 
+        return (H * track.P * H.T) + meas.R

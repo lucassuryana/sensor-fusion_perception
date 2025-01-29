@@ -34,14 +34,30 @@ class Track:
         ############
         # Step 2: initialization:
         ############
-        pos_veh = meas.sensor.sens_to_veh @ np.vstack((meas.z, 1))
-        self.x = np.zeros((6, 1))
-        self.x[:3] = pos_veh[:3]
+        sen_coord = np.ones((4, 1))  # Homogeneous coordinates
+        sen_coord[:3] = meas.z
+        veh_coord = meas.sensor.sens_to_veh * sen_coord
+
+        self.x = np.matrix([[veh_coord[0, 0]],
+                            [veh_coord[1, 0]],
+                            [veh_coord[2, 0]],
+                            [0.],
+                            [0.],
+                            [0.]])
+
+        P_pos = M_rot * meas.R * M_rot.T
+        P_vel = np.matrix([
+            [params.sigma_p44 ** 2, 0, 0],
+            [0, params.sigma_p55 ** 2, 0],
+            [0, 0, params.sigma_p66 ** 2]
+        ])
         self.P = np.zeros((6, 6))
-        self.P[:3, :3] = M_rot @ meas.R @ M_rot.T
-        self.P[3:, 3:] = np.diag([params.sigma_p44, params.sigma_p55, params.sigma_p66])
-        self.state = 'tentative'
-        self.score = 1.0
+        self.P[:3, :3] = P_pos
+        self.P[3:, 3:] = P_vel
+
+        self.state = 'initialised'
+        self.score = 1 / params.window
+        self.age = 1  # Number of dt since first measurement was observed
         ############
 
         # other track attributes
@@ -87,7 +103,10 @@ class Trackmanagement:
 
     def manage_tracks(self, unassigned_tracks, unassigned_meas, meas_list):
         ############
-        # Step 2: implement track management:
+        # TODO Step 2: implement track management:
+        # - decrease the track score for unassigned tracks
+        # - delete tracks if the score is too low or P is too big (check params.py for parameters that might be helpful, but
+        # feel free to define your own parameters)
         ############
 
         # decrease score for unassigned tracks
@@ -96,12 +115,26 @@ class Trackmanagement:
             # check visibility
             if meas_list:  # if not empty
                 if meas_list[0].sensor.in_fov(track.x):
-                    track.score -= params.score_decrease
+                    track.state = 'tentative'
+                    # if track.score > params.delete_threshold + 1:
+                    # track.score = params.delete_threshold + 1
+
+                    track.score -= 1. / params.window
+
+            # check visibility
 
         # delete old tracks
         for track in self.track_list:
-            if track.score < params.delete_threshold or np.max(track.P.diagonal()) > params.max_P:
+            print(track.score)
+            x_var = track.P[0, 0]
+            y_var = track.P[1, 1]
+            if (track.score <= params.delete_threshold and track.state == 'confirmed') or (
+                    x_var >= params.max_P or y_var >= params.max_P):
                 self.delete_track(track)
+
+        ############
+        # END student code
+        ############
 
         # initialize new track with unassigned measurement
         for j in unassigned_meas:
@@ -123,11 +156,16 @@ class Trackmanagement:
 
     def handle_updated_track(self, track):
         ############
-        # Step 2: implement track management for updated tracks:
+        # TODO Step 2: implement track management for updated tracks:
+        # - increase track score
+        # - set track state to 'tentative' or 'confirmed'
         ############
-        track.score += params.score_increase
+        track.score += 1. / params.window
         if track.score > params.confirmed_threshold:
             track.state = 'confirmed'
-        elif track.score > params.tentative_threshold:
+        else:
             track.state = 'tentative'
+
+        ############
+        # END student code
         ############
