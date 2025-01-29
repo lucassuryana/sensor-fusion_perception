@@ -1,7 +1,7 @@
 dataset/*.tfrecord
 project/dataset/*.tfrecord
-results/*
+project/results/darknet/*
+project/results/fpn-resnet/*
 tools/objdet_models/*
 tools/waymo_reader/*
-project/results/*
 project/tools/objdet_models/*
