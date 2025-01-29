@@ -46,23 +46,22 @@ class Sensor:
 
         self.veh_to_sens = np.linalg.inv(self.sens_to_veh)  # transformation vehicle to sensor coordinates
 
-    def in_fov(self, x):
-        # check if an object x can be seen by this sensor
+    def is_in_fov(self, x):
+        # check whether the object x is within the sensor's field of view
         ############
-        # TODO Step 4: implement a function that returns True if x lies in the sensor's field of view,
-        # otherwise False.
+        # TODO Step 4: implement the logic to return True if x is inside the sensor's field of view,
+        # otherwise return False.
         ############
         # return True
 
-        pos_veh = np.ones((4, 1))  # homogeneous coordinates
-        pos_veh[0:3] = x[0:3]
-        pos_sens = self.veh_to_sens * pos_veh  # transform from vehicle to lidar coordinates
+        vehicle_position = np.ones((4, 1))  # homogeneous coordinates
+        vehicle_position[0:3] = x[0:3]
+        sensor_position = self.veh_to_sens @ vehicle_position  # convert from vehicle to sensor coordinates
 
-        # compute angle from x value
-        angle = math.atan2(pos_sens[1], pos_sens[0])
+        # calculate the angle for the position of x
+        angle = math.atan2(sensor_position[1], sensor_position[0])
 
         return self.fov[0] <= angle <= self.fov[1]
-
         ############
         # END student code
         ############
