@@ -46,7 +46,7 @@ class Sensor:
 
         self.veh_to_sens = np.linalg.inv(self.sens_to_veh)  # transformation vehicle to sensor coordinates
 
-    def is_in_fov(self, x):
+    def in_fov(self, x):
         # check whether the object x is within the sensor's field of view
         ############
         # TODO Step 4: implement the logic to return True if x is inside the sensor's field of view,
