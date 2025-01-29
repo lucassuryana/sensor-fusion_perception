@@ -99,12 +99,32 @@ This will process the dataset, apply the Kalman Filter, and generate RMSE plots.
 ├── requirements.txt        # Dependencies
 ```
 
+## Most Difficult Part of the Project & Challenges
+- The most difficult part was data association, especially ensuring that each measurement was correctly assigned while avoiding false associations. The chi-square gating method helped, but fine-tuning the parameters was challenging. 
+- Another challenge was sensor fusion, as camera measurements are nonlinear, requiring the implementation of the Jacobian and proper handling of measurement noise.
+
+## Benefits of Camera-Lidar Fusion
+### Theoretical Benefits
+- Lidar provides precise distance measurements, while cameras offer rich feature information.
+- Redundancy: If one sensor fails (e.g., lidar misses due to occlusion), the other can compensate.
+### Observed Benefits in the Project
+- Lidar-only tracking suffered from false detections and track fragmentation in occlusions.
+- Fusion provided more stable tracking and reduced track losses.
+- Ghost tracks decreased, and associations improved.
+
+## Challenges in Real-Life Sensor Fusion
+- Sensor synchronization issues (timestamp misalignment).
+- Different sensor resolutions and fields of view.
+- Environmental factors affecting sensors (rain, fog, low lighting).
+- Computational cost: Fusion requires more processing power than single-sensor tracking.
+
+In this project, challenges were mainly measurement noise differences and ensuring correct associations between lidar and camera detections.
+
+## Potential Improvements for Future Tracking
+- Use a more advanced data association method (e.g., Hungarian algorithm, Joint Probabilistic Data Association Filter).
+- Incorporate deep learning-based object detection for better camera-based tracking.
+- Use a higher-order motion model (e.g., constant acceleration instead of constant velocity).
+- Adaptive filtering: Adjust process noise dynamically based on object behavior.
+
 ## **Contributors**
 - Lucas Elbert Suryana
-
-## **License**
-This project is open-source and licensed under the [MIT License](LICENSE).
-
----
-
-Would you like any further modifications or additional details? 😊
